@@ -106,7 +106,7 @@ This project leverages the industry-leading combination of:
 
 ## Architecture Overview
 
-![Cloud State Architecture](Diagram/arch2.png)
+![Cloud State Architecture](Diagram/architecture.png)
 
 This diagram illustrates the complete infrastructure architecture managed by this Terraform project, showing the relationship between different AWS services and components.
 
@@ -114,30 +114,46 @@ This diagram illustrates the complete infrastructure architecture managed by thi
 
 #### Terraform State Management (Left Side)
 - **HashiCorp Terraform**: Infrastructure as Code tool for provisioning and managing AWS resources
-- **Remote State Storage**: S3 bucket containing the state of cloud infrastructure
-- **State Management**: Centralized tracking of all infrastructure components and their relationships
+- **AWS Cloud**: Amazon Web Services platform hosting the infrastructure
+- **Remote State Storage**: S3 bucket containing the state of cloud infrastructure with state tracking
 
-#### AWS Cloud Architecture (Right Side)
+#### AWS Cloud Architecture - Virtual Private Cloud (Right Side)
 
-##### Content Delivery & Entry Point
-- **Amazon CloudFront**: Content Delivery Network (CDN) for global content distribution
-- **Load Balancer**: Traffic distribution and health checks for application instances
+##### Network Infrastructure
+- **Virtual Private Cloud (VPC)**: Isolated network environment with green dashed boundary
+- **Internet Gateway**: Entry and exit point for internet traffic at the top of VPC
+- **Route Tables**: Network routing configuration with IP ranges (172.16.0.0, 172.16.1.0, 172.16.2.0)
 
-##### Application Layer
-- **AWS Elastic Beanstalk**: Platform as a Service for application deployment
-- **Apache Tomcat**: Java application server running on Beanstalk
-- **Application Instances**: Scalable compute resources managed by Beanstalk
+##### Multi-Availability Zone Deployment (High Availability)
 
-##### Backend Services (Enclosed Environment)
-- **Amazon ElastiCache**: In-memory caching service for improved performance
-- **Amazon MQ**: Managed message broker service for asynchronous processing
-- **Amazon RDS**: Managed relational database service for persistent data storage
+**Availability Zone 1 (Left Half of VPC):**
+- **Public Subnet**: Internet-facing resources with direct internet access
+  - **VPC NAT Gateway**: Network Address Translation for outbound internet access
+- **Private Subnet**: Internal resources with enhanced security
+  - **Amazon EC2**: Application server instance
+  - **MySQL DB Instance**: Relational database (Amazon RDS) connected to EC2
 
-#### Data Flow Architecture
-1. **Request Flow**: Traffic enters through CloudFront → Load Balancer → Beanstalk Application
-2. **Application Processing**: Beanstalk application processes requests using Tomcat
-3. **Backend Integration**: Application interacts with ElastiCache (caching), Amazon MQ (messaging), and RDS (database)
-4. **Data Persistence**: All backend services connect to RDS for data storage and retrieval
+**Availability Zone 2 (Right Half of VPC):**
+- **Public Subnet**: Internet-facing resources
+  - **Bastion Host Security Group**: Secure jump server for administrative access
+  - **VPC NAT Gateway**: Network Address Translation for outbound access
+- **Private Subnet**: Internal resources
+  - **Amazon EC2**: Application server instance
+  - **Cache Node**: In-memory caching service (Amazon ElastiCache) connected to EC2
+
+#### Connectivity and Data Flow
+1. **Internet Access**: Internet Gateway → Public Subnets → VPC NAT Gateways → Private Subnets
+2. **Application Processing**: EC2 instances in private subnets process application requests
+3. **Backend Services**: EC2 instances connect to MySQL DB (AZ1) and Cache Node (AZ2)
+4. **Administrative Access**: Bastion Host Security Group provides secure access to private subnets
+5. **State Management**: Terraform manages all infrastructure state via S3 bucket
+
+#### Security Architecture
+- **Multi-AZ Deployment**: High availability across availability zones
+- **Private Subnets**: Internal resources isolated from internet
+- **NAT Gateways**: Secure outbound internet access for private resources
+- **Bastion Host**: Secure administrative access to private network
+- **Security Groups**: Network-level firewall rules and access controls
 
 ### Security Architecture
 - **Multi-AZ Deployment**: High availability across availability zones
