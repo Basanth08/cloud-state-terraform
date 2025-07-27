@@ -313,7 +313,46 @@ terraform {
 - **Messaging**: ActiveMQ for asynchronous processing
 - **Scaling**: 1-8 instances based on demand
 
+## Application Build and Deployment
+
+### **Maven Build Process**
+```bash
+# Clean and compile the project
+mvn clean compile
+
+# Run tests
+mvn test
+
+# Package the application
+mvn package
+
+# Install to local repository
+mvn install
+```
+
+### **Elastic Beanstalk Deployment**
+- **Platform**: Java with Tomcat 8.5 Corretto 11
+- **Auto Scaling**: 1-8 instances based on load
+- **Health Checks**: Application health monitoring
+- **Rolling Updates**: Zero-downtime deployments
+- **Load Balancer**: Cross-zone load balancing enabled
+
+### **Deployment Artifacts**
+- **WAR File**: Java web application archive
+- **Configuration**: Environment-specific settings
+- **Dependencies**: All required libraries included
+- **Database Migration**: Automated schema setup
+
+### **Post-Deployment Verification**
+1. **Health Check**: Verify application is responding
+2. **Database Connection**: Confirm database connectivity
+3. **Cache Integration**: Test ElastiCache connectivity
+4. **Message Queue**: Verify ActiveMQ connectivity
+5. **Load Balancer**: Test traffic distribution
+
 ## Quick Start
+
+### Infrastructure Deployment
 
 1. **Clone the repository**
    ```bash
@@ -332,11 +371,36 @@ terraform {
    # Edit the variables file with your configuration
    ```
 
-4. **Plan and Apply**
+4. **Deploy Infrastructure**
    ```bash
    terraform plan
    terraform apply
    ```
+
+### Application Deployment
+
+5. **Build Application**
+   ```bash
+   # Navigate to your application directory
+   cd your-application-directory
+   
+   # Build with Maven
+   mvn clean install
+   ```
+
+6. **Deploy to Elastic Beanstalk**
+   ```bash
+   # The Elastic Beanstalk environment is automatically created by Terraform
+   # Your application will be deployed to the configured environment
+   # Access your application via the provided Elastic Beanstalk URL
+   ```
+
+### Deployment Flow
+1. **Infrastructure First**: Terraform creates all AWS resources (VPC, RDS, ElastiCache, etc.)
+2. **Database Setup**: Bastion host automatically initializes the database
+3. **Application Build**: Maven compiles and packages your Java application
+4. **Beanstalk Deployment**: Application is deployed to the Elastic Beanstalk environment
+5. **Health Checks**: Elastic Beanstalk ensures your application is running properly
 
 ## State Management
 
